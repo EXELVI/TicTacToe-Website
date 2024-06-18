@@ -19,8 +19,6 @@
         </div>
         <div class="row">
             <div class="col-12 text-center">
-
-                <h3>Player: <span id="player">X</span></h3>
                 <h3>Turn: <span id="turn">X</span></h3>
                 <h3 id="wintext"></h3>
                 <div id="playAiDiv">
@@ -346,6 +344,19 @@
                                 document.getElementById("wintext").innerText = "Draw!"
                                 document.getElementById("board").innerHTML = getButtons(board, true).innerHTML                  
                             }
+
+                            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                            document.getElementById("turn").innerText = currentPlayer
+                            if (ai && currentPlayer == "O") {
+                                if (hard) board = getAIMove(board)
+                                else board = getAIMoveEasy(board)
+                                currentPlayer = "X"
+                                document.getElementById("turn").innerText = currentPlayer
+                            }
+                            document.getElementById("board").innerHTML = getButtons(board, false).innerHTML
+
+                        
+                            
                       
 
                         } else {
