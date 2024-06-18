@@ -34,7 +34,7 @@
                     </label>
                 </div>
 
-                <button class="btn btn-primary" id="start">Start\</button>
+                <button class="btn btn-primary" id="start">Start</button>
             </div>
         </div>
         <div class="row">
@@ -310,7 +310,7 @@
             let currentPlayer = 'X';
 
 
-            const buttons = getButtons(board, roundStarted)
+            const buttons = getButtons(board, false)
             const boardDiv = document.getElementById('board')
             boardDiv.innerHTML = buttons.innerHTML
 
@@ -326,46 +326,54 @@
                     currentPlayer = "X"
                 }
 
-                for (let i = 0; i < 9; i++) {
-                    document.getElementById(i).addEventListener("click", e => {
-                        var col = i % 3,
-                            row = Math.floor(i / 3);
+                function handleClick(e, i) {
+                    e.preventDefault()
+                    var col = i % 3,
+                        row = Math.floor(i / 3);
 
-                        if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === '') {
-                            if (!matchStartTime) matchStartTime = new Date().getTime()
-                            board[row][col] = currentPlayer;
-                            if (checkWin(board, currentPlayer)) {
-                                document.getElementById("wintext").innerText = currentPlayer + " won!"
-                                document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
-                                                                    
-                            
-                            }
-                            if (checkDraw(board)) {
-                                document.getElementById("wintext").innerText = "Draw!"
-                                document.getElementById("board").innerHTML = getButtons(board, true).innerHTML                  
-                            }
+                    if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === '') {
+                        if (!matchStartTime) matchStartTime = new Date().getTime()
+                        board[row][col] = currentPlayer;
+                        if (checkWin(board, currentPlayer)) {
+                            document.getElementById("wintext").innerText = currentPlayer + " won!"
+                            document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
 
-                            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                            document.getElementById("turn").innerText = currentPlayer
-                            if (ai && currentPlayer == "O") {
-                                if (hard) board = getAIMove(board)
-                                else board = getAIMoveEasy(board)
-                                currentPlayer = "X"
-                                document.getElementById("turn").innerText = currentPlayer
-                            }
-                            document.getElementById("board").innerHTML = getButtons(board, false).innerHTML
 
-                        
-                            
-                      
-
-                        } else {
-                            // alert("Invalid move")
                         }
-                    })
-                }
+                        if (checkDraw(board)) {
+                            document.getElementById("wintext").innerText = "Draw!"
+                            document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                        }
 
-            })
+                        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+
+                        document.getElementById("turn").innerText = currentPlayer
+                        if (ai && currentPlayer == "O") {
+                            if (hard) board = getAIMove(board)
+                            else board = getAIMoveEasy(board)
+                            currentPlayer = "X"
+                            document.getElementById("turn").innerText = currentPlayer
+                        }
+                        document.getElementById("board").innerHTML = getButtons(board, false).innerHTML
+                        
+                createButtonEventListener()
+
+
+
+
+
+                    } else {
+                        // alert("Invalid move")
+                    }
+                }
+               function createButtonEventListener() {
+                    for (let i = 0; i < 9; i++) {
+                        document.getElementById(i).addEventListener("click", e => handleClick(e, i))
+                    }
+               }
+                createButtonEventListener()
+               })
+
 
 
 
