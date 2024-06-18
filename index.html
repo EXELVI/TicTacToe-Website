@@ -106,9 +106,8 @@
         }
 
 
-        async function getImageBoard(board, avatar1, avatar2) {
+        async function getImageBoard(board, canvas) {
             var canvasSize = 500;
-            const canvas = Canvas.createCanvas(canvasSize, canvasSize)
             var sectionSize = canvasSize / 3;
             var context = canvas.getContext('2d');
 
@@ -133,7 +132,7 @@
 
                 context.stroke();
             }
-
+           
             function clearPlayingArea(xSettore, ySettore) {
                 var xCordinate = xSettore * sectionSize;
                 var yCordinate = ySettore * sectionSize;
@@ -141,13 +140,14 @@
                 context.fillStyle = "#fff";
                 context.fillRect(xCordinate, yCordinate, sectionSize, sectionSize);
             }
-
+ /* Disabled for now
             function setUserAvatar(avatar, xSettore, ySettore) {
                 var xCordinate = xSettore * sectionSize;
                 var yCordinate = ySettore * sectionSize;
                 context.fillRect(xCordinate, yCordinate, sectionSize, sectionSize);
                 context.drawImage(avatar, xCordinate, yCordinate, sectionSize, sectionSize)
             }
+                */
 
 
             function drawO(xSettore, ySettore) {
@@ -161,7 +161,7 @@
                 var endAngle = 2 * Math.PI;
 
 
-                setUserAvatar(avatar2, xSettore, ySettore)
+                //setUserAvatar(avatar2, xSettore, ySettore)
 
                 context.lineWidth = 10;
                 context.strokeStyle = "#ec4244";
@@ -175,7 +175,7 @@
                 var yCordinate = ySettore * sectionSize;
                 context.strokeStyle = "#5965f3";
 
-                setUserAvatar(avatar1, xSettore, ySettore)
+                //setUserAvatar(avatar1, xSettore, ySettore)
 
                 var offset = 50
 
@@ -199,7 +199,7 @@
             }
             drawLines(10, "#ddd");
 
-            return canvas.toBuffer()
+
 
         }
 
@@ -339,15 +339,18 @@
                         if (checkWin(board, currentPlayer)) {
                             document.getElementById("wintext").innerText = currentPlayer + " won!"
                             document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                            getImageBoard(board, document.getElementById("imageExport"))
                             return
                         }
 
                         if (checkDraw(board)) {
                             document.getElementById("wintext").innerText = "Draw!"
                             document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                            getImageBoard(board, document.getElementById("imageExport"))
                             return
                         }
-
+                        
+                        document.getElementById("board").innerHTML = getButtons(board, false).innerHTML
                         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
                         document.getElementById("turn").innerText = currentPlayer
 
@@ -358,11 +361,16 @@
                             if (checkWin(board, currentPlayer)) {
                                 document.getElementById("wintext").innerText = currentPlayer + " won!"
                                 document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                                getImageBoard(board, document.getElementById("imageExport"))
+                                return
+                                
                             }
 
                             if (checkDraw(board)) {
                                 document.getElementById("wintext").innerText = "Draw!"
                                 document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                                getImageBoard(board, document.getElementById("imageExport"))
+                                return
                             }
 
                             currentPlayer = "X"
@@ -401,7 +409,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-    <script type="text/javascript" src="node_modules/tictactoe-ai/dist/tictactoe.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/tictactoe-ai/dist/tictactoe.min.js"></script>
 </body>
 
 </html>
