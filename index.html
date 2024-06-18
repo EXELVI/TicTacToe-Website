@@ -19,18 +19,24 @@
         </div>
         <div class="row">
             <div class="col-12 text-center">
-                
+
                 <h3>Player: <span id="player">X</span></h3>
                 <h3>Turn: <span id="turn">X</span></h3>
                 <h3 id="wintext"></h3>
-                <div>
-                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                <div id="playAiDiv">
+                    <input class="form-check-input" type="checkbox" value="" id="useAI">
                     <label class="form-check-label" for="flexCheckDefault">
-                      Default checkbox
+                        Play with AI
                     </label>
                 </div>
-              
-                <button class="btn btn-primary" id="start">Reset</button>
+                <div id="easyAIdiv" hidden>
+                    <input class="form-check-input" type="checkbox" value="" id="easyAI">
+                    <label class="form-check-label" for="flexCheckDefault" hid>
+                        Easy Mode
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" id="start">Start\</button>
             </div>
         </div>
         <div class="row">
@@ -86,11 +92,12 @@
             buttonContainer.className = 'container text-center'
             for (let i = 0; i < 3; i++) {
                 let col = document.createElement('div')
+                col.className = 'col'
                 for (let j = 0; j < 3; j++) {
                     let button = document.createElement('button')
                     button.type = 'button'
                     button.id = i * 3 + j
-                    button.className = 'btn btn-' + board[i][j] == "X" ? "primary" : (board[i][j] == "O" ? "danger" : "secondary")
+                    button.className = 'btn btn-' + (board[i][j] == "X" ? "primary" : (board[i][j] == "O" ? "danger" : "secondary")) + " m-1"
                     button.innerText = board[i][j] == "X" ? "✖️" : (board[i][j] == "O" ? "⚫" : "➖")
                     button.disabled = disabled || (board[i][j] == "X" || board[i][j] == "O")
                     col.appendChild(button)
@@ -285,17 +292,181 @@
             return true;
         }
 
-        let board = [['', '', ''], ['', '', ''], ['', '', '']];
-        var matchStartTime
-
-        let currentPlayer = 'X';
 
 
-        if (ai && (currentPlayer == "O")) {
-            if (hard) board = getAIMove(board)
-            else board = getAIMoveEasy(board)
-            currentPlayer = "X"
-        }
+        document.addEventListener("DOMContentLoaded", () => {
+            var divEasyAI = document.getElementById("easyAIdiv")
+            var checkboxAI = document.getElementById("useAI")
+
+            checkboxAI.addEventListener("change", () => {
+                if (checkboxAI.checked) {
+                    divEasyAI.hidden = false
+                } else {
+                    divEasyAI.hidden = true
+                }
+            })
+
+            let board = [['', '', ''], ['', '', ''], ['', '', '']];
+            var matchStartTime
+
+            let currentPlayer = 'X';
+
+
+            const buttons = getButtons(board, roundStarted)
+            const boardDiv = document.getElementById('board')
+            boardDiv.innerHTML = buttons.innerHTML
+
+            document.getElementById("start").addEventListener("click", e => {
+                divEasyAI = document.getElementById("easyAIdiv")
+                document.getElementById("playAiDiv").hidden = true
+                divEasyAI.hidden = true
+                var ai = document.getElementById("useAI").checked
+                var hard = !document.getElementById("easyAI").checked
+                if (ai && (currentPlayer == "O")) {
+                    if (hard) board = getAIMove(board)
+                    else board = getAIMoveEasy(board)
+                    currentPlayer = "X"
+                }
+
+                for (let i = 0; i < 9; i++) {
+                    document.getElementById(i).addEventListener("click", e => {
+                        var col = i % 3,
+                            row = Math.floor(i / 3);
+
+                        if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === '') {
+                            if (!matchStartTime) matchStartTime = new Date().getTime()
+                            board[row][col] = currentPlayer;
+                            if (checkWin(board, currentPlayer)) {
+                                document.getElementById("wintext").innerText = currentPlayer + " won!"
+                                document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                                                                    
+                            
+                            }
+                            if (checkDraw(board)) {
+                                document.getElementById("wintext").innerText = "Draw!"
+                                document.getElementById("board").innerHTML = getButtons(board, true).innerHTML                  
+                            }
+                            if (ai && (currentPlayer == "O")) {
+                                if (hard) board = getAIMove(board)
+                                else board = getAIMoveEasy(board)
+                                if (checkWin(board, currentPlayer)) {
+                                    var playerwon
+                                    if (currentPlayer == interaction.member.label) playerwon = interaction.member
+                                    else playerwon = user
+                                    embed = new Discord.EmbedBuilder()
+                                        .setTitle(await getTranslation("ttt.embed.main.title", userlanguage))
+                                        .setImage("attachment://tictactoe.png")
+                                        .setDescription(interaction.member.toString() + " vs " + user.toString() + "\n" + await getTranslation("ttt.embed.main.description.won", userlanguage, [playerwon.toString()]))
+                                        .setTimestamp()
+                                        .setFooter({ text: "Match ID: " + matchID })
+                                    i.deferUpdate()
+                                    interaction.editReply({ components: getButtons(board, true), embeds: [embed] }).then(async () => {
+                                        const attachment = new Discord.AttachmentBuilder(await getImageBoard(board, user1Avatar, user2Avatar), { name: "tictactoe.png" })
+                                        interaction.editReply({ embeds: [embed], files: [attachment] })
+                                    })
+
+
+                                    var match = {
+                                        serverID: interaction.guild.id,
+                                        startTime: matchStartTime,
+                                        endTime: new Date().getTime(),
+                                        matchID: matchID,
+                                        board: board,
+                                        userX: interaction.member.id,
+                                        userO: user.id,
+                                        ai: ai,
+                                        hard: hard,
+                                        draw: false,
+                                        win: playerwon.id
+                                    }
+                                    db.collection("serverTictactoe").insertOne(match)
+
+                                    userDb1.win += (interaction.member.id == playerwon ? 1 : 0)
+                                    //userDb1.draw += 1
+                                    userDb1.lose += (interaction.member.id != playerwon ? 1 : 0)
+                                    userDb1.played += 1
+                                    userDb1.lastPlayed = new Date().getTime()
+                                    userDb1.matches.push(matchID)
+
+                                    userDb2.win += (user.id == playerwon ? 1 : 0)
+                                    //userDb2.draw += 1
+                                    userDb2.lose += (user.id != playerwon ? 1 : 0)
+                                    userDb2.played += 1
+                                    userDb2.lastPlayed = new Date().getTime()
+                                    userDb2.matches.push(matchID)
+
+
+
+                                    return collector.stop("gameEnd")
+                                }
+                                if (checkDraw(board)) {
+                                    embed = new Discord.EmbedBuilder()
+                                        .setTitle(await getTranslation("ttt.embed.main.title", userlanguage))
+                                        .setImage("attachment://tictactoe.png")
+                                        .setDescription(interaction.member.toString() + " vs " + user.toString() + "\n" + await getTranslation("ttt.embed.main.description.draw", userlanguage))
+                                        .setTimestamp()
+                                        .setFooter({ text: "Match ID: " + matchID })
+                                    i.deferUpdate()
+                                    interaction.editReply({ components: getButtons(board, true), embeds: [embed] }).then(async () => {
+                                        const attachment = new Discord.AttachmentBuilder(await getImageBoard(board, user1Avatar, user2Avatar), { name: "tictactoe.png" })
+                                        interaction.editReply({ embeds: [embed], files: [attachment] })
+                                    })
+
+                                    var match = {
+                                        serverID: interaction.guild.id,
+                                        startTime: matchStartTime,
+                                        endTime: new Date().getTime(),
+                                        matchID: matchID,
+                                        board: board,
+                                        userX: interaction.member.id,
+                                        userO: user.id,
+                                        ai: ai,
+                                        hard: hard,
+                                        draw: true,
+                                        win: false
+                                    }
+                                    db.collection("serverTictactoe").insertOne(match)
+
+                                    //userDb1.win += (interaction.member.id == playerwon ? 1 : 0)
+                                    userDb1.draw += 1
+                                    //userDb1.lose += (interaction.member.id != playerwon ? 1 : 0)
+                                    userDb1.played += 1
+                                    userDb1.lastPlayed = new Date().getTime()
+                                    userDb1.matches.push(matchID)
+
+                                    //userDb2.win += (user.id == playerwon ? 1 : 0)
+                                    userDb2.draw += 1
+                                    //userDb2.lose += (user.id != playerwon ? 1 : 0)
+                                    userDb2.played += 1
+                                    userDb2.lastPlayed = new Date().getTime()
+                                    userDb2.matches.push(matchID)
+
+
+
+
+                                    return collector.stop("gameEnd")
+                                }
+                                currentPlayer = interaction.member.label
+                            }
+
+                            i.deferUpdate()
+                            embed.setColor(currentPlayer == "X" ? "#5965f3" : "#ec4244")
+                            interaction.editReply({ components: getButtons(board), embeds: [embed] }).then(async () => {
+                                const attachment = new Discord.AttachmentBuilder(await getImageBoard(board, user1Avatar, user2Avatar), { name: "tictactoe.png" })
+                                interaction.editReply({ embeds: [embed], files: [attachment] })
+                            })
+
+                        } else {
+                            i.reply({ content: "Mossa non valida!", ephemeral: true })
+                        }
+                    })
+                }
+
+            })
+
+
+
+        })
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
