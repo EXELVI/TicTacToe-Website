@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "tictactoe-ai": "^1.0.4"
+  }
+}

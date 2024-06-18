@@ -223,9 +223,9 @@
 
         function getAIMove(boarddd) {
             var newboard = convertToFlatBoard(boarddd)
-            var board = new tictactoe.TicTacToeBoard(newboard);
+            var board = new TicTacToe.TicTacToeBoard(newboard);
             var aiTeam = board.oppositePlayer("X");
-            aiPlayer = new tictactoe.TicTacToeAIPlayer();
+            aiPlayer = new TicTacToe.TicTacToeAIPlayer();
             aiPlayer.initialize(aiTeam, board);
             var move = aiPlayer.makeMove();
             if (move != null) {
@@ -334,45 +334,63 @@
                     if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] === '') {
                         if (!matchStartTime) matchStartTime = new Date().getTime()
                         board[row][col] = currentPlayer;
+
+
                         if (checkWin(board, currentPlayer)) {
                             document.getElementById("wintext").innerText = currentPlayer + " won!"
                             document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
-
-
+                            return
                         }
+
                         if (checkDraw(board)) {
                             document.getElementById("wintext").innerText = "Draw!"
                             document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                            return
                         }
 
                         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-
                         document.getElementById("turn").innerText = currentPlayer
+
                         if (ai && currentPlayer == "O") {
                             if (hard) board = getAIMove(board)
                             else board = getAIMoveEasy(board)
+
+                            if (checkWin(board, currentPlayer)) {
+                                document.getElementById("wintext").innerText = currentPlayer + " won!"
+                                document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                            }
+
+                            if (checkDraw(board)) {
+                                document.getElementById("wintext").innerText = "Draw!"
+                                document.getElementById("board").innerHTML = getButtons(board, true).innerHTML
+                            }
+
                             currentPlayer = "X"
                             document.getElementById("turn").innerText = currentPlayer
+
+
                         }
+
+
                         document.getElementById("board").innerHTML = getButtons(board, false).innerHTML
-                        
-                createButtonEventListener()
+
+                        createButtonEventListener()
 
 
 
 
 
                     } else {
-                        // alert("Invalid move")
+                        alert("Invalid move")
                     }
                 }
-               function createButtonEventListener() {
+                function createButtonEventListener() {
                     for (let i = 0; i < 9; i++) {
                         document.getElementById(i).addEventListener("click", e => handleClick(e, i))
                     }
-               }
+                }
                 createButtonEventListener()
-               })
+            })
 
 
 
@@ -383,6 +401,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+    <script type="text/javascript" src="node_modules/tictactoe-ai/dist/tictactoe.min.js"></script>
 </body>
 
 </html>
